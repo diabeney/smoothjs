@@ -27,35 +27,32 @@ This document walks through every module, every function, and how they connect. 
 Imagine a typical React app built with Create React App or Vite without SSR configuration. Here is what happens when a browser visits it:
 
 ```
-Browser Server
- | |
- |-- GET / ---------------->|
- | |
- |<-- empty HTML -----------|
- | <div id="root"></div> |
- | <script src="bundle.js"></script>
- | |
- |-- GET bundle.js -------->|
- | |
- |<-- bundle.js ------------|
- | (React, router, |
- | API clients, icons, |
- | ALL page components, |
- | libraries, etc.) |
- | |
- | [browser runs bundle.js] |
- | React renders UI |
- | (user sees blank until |
- | this finishes) |
- | |
- |-- GET /api/data -------->| (data fetching round trips)
- |<-- JSON data ------------|
- | |
- | React re-renders with |
- | data, attaches event |
- | listeners |
- | |
- | [Page is now interactive]|
+  Browser                                                                    Server
+    |                                                                          |
+    |-------------------------- GET / ---------------------------------------->|
+    |                                                                          |
+    |<--------------------- empty HTML ----------------------------------------|
+    |  <div id="root"></div>                                                   |
+    |  <script src="bundle.js"></script>                                       |
+    |                                                                          |
+    |------------------------- GET bundle.js --------------------------------->|
+    |                                                                          |
+    |<--------------------- bundle.js -----------------------------------------|
+    |  (React, router,                                                         |
+    |   API clients, icons,                                                    |
+    |   ALL page components,                                                   |
+    |   libraries, etc.)                                                       |
+    |                                                                          |
+    |  [browser runs bundle.js]                                                |
+    |  React renders UI                                                        |
+    |  (user sees blank until this finishes)                                   |
+    |                                                                          |
+    |------------------------- GET /api/data --------------------------------->|  (data fetching round trips)
+    |<--------------------- JSON data -----------------------------------------|
+    |                                                                          |
+    |  React re-renders with data, attaches event listeners                    |
+    |                                                                          |
+    |  [Page is now interactive]                                               |
 ```
 
 The problems with this approach:
@@ -75,42 +72,36 @@ Next.js (before RSCs) solved these problems with a simple shift: instead of send
 Here is the same visit with server-side rendering (SSR):
 
 ```
-Browser Server
- | |
- |-- GET /blog/hello ------>|
- | |
- | | 1. Match URL to a route
- | | 2. Fetch data (getServerSideProps)
- | | 3. Render React to HTML
- | |
- |<-- full HTML ------------|
- | <html> |
- | <head>...</head> |
- | <body> |
- | <nav>...</nav> |
- | <article>...</article>|
- | <script>window.__DATA__={...}</script>
- | <script src="page.js"></script>
- | </body> |
- | </html> |
- | |
- | [Browser renders HTML |
- | immediately - user sees |
- | the page with content] |
- | |
- |-- GET page.js ---------->|
- | |
- |<-- page.js --------------|
- | (only this page's |
- | component + layouts, |
- | NOT the whole app) |
- | |
- | React hydrates: |
- | builds virtual DOM, |
- | compares with real HTML, |
- | attaches event listeners |
- | |
- | [Page is now interactive]|
+  Browser                                                                    Server
+    |                                                                          |
+    |------------------------- GET /blog/hello ------------------------------->|
+    |                                                                          |
+    |                                                                     1. Match URL to a route
+    |                                                                     2. Fetch data (getServerSideProps)
+    |                                                                     3. Render React to HTML
+    |                                                                          |
+    |<--------------------- full HTML -----------------------------------------|
+    |  <html>                                                                  |
+    |   <head>...</head>                                                       |
+    |   <body>                                                                 |
+    |    <nav>...</nav>                                                        |
+    |    <article>...</article>                                                |
+    |    <script>window.__DATA__={...}</script>                                |
+    |    <script src="page.js"></script>                                       |
+    |   </body>                                                                |
+    |  </html>                                                                 |
+    |                                                                          |
+    |  [Browser renders HTML immediately - user sees the page with content]    |
+    |                                                                          |
+    |------------------------- GET page.js ----------------------------------->|
+    |                                                                          |
+    |<--------------------- page.js -------------------------------------------|
+    |  (only this page's component + layouts, NOT the whole app)               |
+    |                                                                          |
+    |  React hydrates:                                                         |
+    |   builds virtual DOM, compares with real HTML, attaches event listeners  |
+    |                                                                          |
+    |  [Page is now interactive]                                               |
 ```
 
 Three things changed:
