@@ -1,0 +1,9 @@
+node_modules/
+.smooth/
+dist/
+
+docs/
+
+*.log
+.env
+.env.local

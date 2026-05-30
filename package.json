@@ -1,0 +1,25 @@
+{
+  "name": "smoothjs",
+  "version": "0.1.0",
+  "description": "A minimal SSR React framework built on Bun",
+  "type": "module",
+  "bin": {
+    "smooth": "bin/smooth.ts"
+  },
+  "scripts": {
+    "build": "bun run bin/smooth.ts build",
+    "dev": "bun run bin/smooth.ts dev",
+    "start": "bun run bin/smooth.ts start"
+  },
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwindcss": "^4.3.0",
+    "tailwindcss-bun-plugin": "^4.2.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "bun-types": "^1.3.14"
+  }
+}
