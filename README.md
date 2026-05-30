@@ -10,6 +10,10 @@ SmoothJS is a minimal implementation of how React frameworks worked before React
 
 For a deep dive into every module, how the build pipeline works, how the router matches URLs, how the server handles requests, and how the client-side router navigates between pages, read **[pkg/README.md](pkg/README.md)**.
 
+## Roadmap
+
+This project covers the **pre-RSC era** - the Next.js model before React Server Components. The natural next step is implementing RSCs: components that run and render entirely on the server, sending only their output (not their code) to the client. This is how modern Next.js works. The concepts here (SSR, hydration, per-page bundles) are the foundation that RSCs build on.
+
 ## Quick start
 
 ```bash
@@ -27,6 +31,8 @@ bun run start
 ```
 
 Open `http://localhost:3000`.
+
+![SmoothJS screenshot](ss.png)
 
 ## The sample app
 

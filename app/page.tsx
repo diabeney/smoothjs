@@ -1,4 +1,5 @@
 import Counter from "./_components/Counter.js";
+import NameList from "./_components/NameList.js";
 import type { SmoothContext } from "../pkg/types.js";
 
 interface HomeProps {
@@ -44,23 +45,23 @@ export default function HomePage({ timestamp }: HomeProps) {
       </div>
 
       <div className="mb-14">
-        <p className="text-white/30 text-xs font-medium uppercase tracking-widest mb-6">
-          Interactivity
-        </p>
-        <Counter />
+        <NameList />
       </div>
 
-      <div className="grid md:grid-cols-3 gap-3 mb-14">
-        {[
-          { label: "File-system routing", desc: "Routes map to files. No config." },
-          { label: "Server-side props", desc: "Fetch data before the page renders." },
-          { label: "Full hydration", desc: "React takes over on the client." },
-        ].map((f) => (
-          <div key={f.label} className="border border-white/8 rounded-xl p-5 bg-white/2">
-            <p className="text-sm font-semibold mb-1.5">{f.label}</p>
-            <p className="text-white/40 text-xs leading-relaxed">{f.desc}</p>
-          </div>
-        ))}
+      <div className="grid md:grid-cols-2 gap-4 mb-14">
+        <Counter />
+        <div className="grid gap-3">
+          {[
+            { label: "File-system routing", desc: "Routes map to files. No config." },
+            { label: "Server-side props", desc: "Fetch data before the page renders." },
+            { label: "Full hydration", desc: "React takes over on the client." },
+          ].map((f) => (
+            <div key={f.label} className="border border-white/8 rounded-xl p-5 bg-white/2">
+              <p className="text-sm font-semibold mb-1.5">{f.label}</p>
+              <p className="text-white/40 text-xs leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <p className="text-white/15 text-xs">

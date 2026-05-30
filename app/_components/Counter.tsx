@@ -7,7 +7,7 @@ export default function Counter() {
   const isPositive = count > 0;
 
   return (
-    <div className="flex flex-col items-center gap-6 border border-white/10 rounded-2xl bg-white/0.03 px-14 py-10 w-full md:w-fit">
+    <div className="flex flex-col items-center gap-6 border border-white/10 rounded-2xl bg-white/0.03 px-14 py-10">
       <p className="text-white/30 text-xs font-medium uppercase tracking-widest">
         client state
       </p>
