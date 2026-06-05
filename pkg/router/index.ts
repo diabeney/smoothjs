@@ -2,7 +2,7 @@ import { dirname, join, relative } from "path";
 import type { RouteEntry } from "../types.js";
 import {
   collectPageFiles,
-  collectLayouts,
+  findAppFile,
   derivePattern,
   deriveClientBundle,
   deriveLoadingBundle,
@@ -19,10 +19,12 @@ export async function walkAppDir(
   const pageFiles = await collectPageFiles(appDir);
   const entries: RouteEntry[] = [];
 
+  const appFile = await findAppFile(appDir, root);
+  const layouts = appFile ? [appFile] : [];
+
   for (const pageAbsPath of pageFiles) {
     const pattern = derivePattern(pageAbsPath, appDir);
     const pagePath = relative(root, pageAbsPath);
-    const layouts = await collectLayouts(pageAbsPath, appDir, root);
     const clientBundle = deriveClientBundle(pattern);
 
     const relWithoutPage = relative(appDir, pageAbsPath).replace(

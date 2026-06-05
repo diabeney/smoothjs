@@ -1,6 +1,5 @@
 import { readdir, stat } from "fs/promises";
 import { join, relative, dirname, resolve } from "path";
-import type { RouteEntry } from "../types.js";
 
 export async function collectPageFiles(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -24,6 +23,14 @@ export async function fileExists(filePath: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export async function findAppFile(pagesDir: string, projectRoot: string): Promise<string | undefined> {
+  const appPath = join(pagesDir, "_app.tsx");
+  if (await fileExists(appPath)) {
+    return relative(projectRoot, appPath);
+  }
+  return undefined;
 }
 
 export function derivePattern(pageAbsPath: string, appDir: string): string {
@@ -56,33 +63,6 @@ export function deriveLoadingBundle(pattern: string): string {
   if (pattern === "/") return ".smooth/client/index.loading.js";
   const withBrackets = pattern.slice(1).replace(/:([^/]+)/g, "[$1]");
   return `.smooth/client/${withBrackets}.loading.js`;
-}
-
-export async function collectLayouts(
-  pageAbsPath: string,
-  appDir: string,
-  projectRoot: string
-): Promise<string[]> {
-  const layouts: string[] = [];
-  let current = dirname(pageAbsPath);
-  const appDirResolved = resolve(appDir);
-
-  while (true) {
-    const currentResolved = resolve(current);
-
-    if (!currentResolved.startsWith(appDirResolved)) break;
-
-    const layoutPath = join(current, "layout.tsx");
-    if (await fileExists(layoutPath)) {
-      layouts.push(relative(projectRoot, layoutPath));
-    }
-
-    if (currentResolved === appDirResolved) break;
-
-    current = dirname(current);
-  }
-
-  return layouts.reverse();
 }
 
 // Splits on :param markers — capturing group keeps param names in the result array.

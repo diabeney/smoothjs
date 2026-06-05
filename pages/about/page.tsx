@@ -19,7 +19,7 @@ export default function AboutPage() {
           },
           {
             title: "File-system router",
-            body: "app/page.tsx becomes /, app/blog/[slug]/page.tsx becomes /blog/:slug. Layouts nest automatically. No route config.",
+            body: "pages/page.tsx becomes /, pages/blog/[slug]/page.tsx becomes /blog/:slug. A single _app.tsx wraps every page. No route config.",
           },
           {
             title: "Server-side props",

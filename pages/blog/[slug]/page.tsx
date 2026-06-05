@@ -8,21 +8,21 @@ const content: Record<string, { title: string; date: string; body: string }> = {
 
 The goal is to make the internals understandable. Every file is short, every function does one thing, and the whole pipeline fits in your head.
 
-You build an app in app/, run smooth build, and smooth start serves it. That's it.`,
+You build an app in pages/, run smooth build, and smooth start serves it. That's it.`,
   },
   "getting-started": {
     title: "Getting Started with SmoothJS",
     date: "May 22, 2026",
     body: `Install Bun, clone the repo, and run bun install. Then bun run dev.
 
-Your app lives in app/. Add a page.tsx and it becomes a route. Add a layout.tsx and it wraps the page. Add a [param]/ folder and it becomes a dynamic route.
+Your app lives in pages/. Add a page.tsx and it becomes a route. Add a _app.tsx and it wraps every page. Add a [param]/ folder and it becomes a dynamic route.
 
 To fetch data on the server, export getServerSideProps from your page. The return value becomes the component's props.`,
   },
   "ssr-deep-dive": {
     title: "SSR Deep Dive: How SmoothJS Works",
     date: "May 25, 2026",
-    body: `smooth build does three things: it walks app/ to discover routes, it uses Bun.build() to generate a client hydration bundle per route, and it writes a manifest.json that describes the full route table.
+    body: `smooth build does three things: it walks pages/ to discover routes, it uses Bun.build() to generate a client hydration bundle per route, and it writes a manifest.json that describes the full route table.
 
 When a request comes in, the server reads the manifest to match the URL, imports the page module, runs getServerSideProps, calls renderToString, and sends back a full HTML document.
 

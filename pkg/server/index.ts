@@ -55,7 +55,8 @@ export function createServer(
 
       if (pathname.startsWith("/_smooth/")) {
         const filePath = path.join(".smooth", "client", pathname.slice("/_smooth/".length));
-        return new Response(Bun.file(filePath));
+        const file = Bun.file(filePath);
+        if (await file.exists()) return new Response(file);
       }
 
       if (pathname !== "/") {

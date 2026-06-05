@@ -157,20 +157,20 @@ This tension is exactly what led to **React Server Components (RSCs)** . RSCs ta
 
 SmoothJS is a minimal implementation of the pre-RSC Next.js model with these features:
 
-* **File-based routing.** `app/blog/[slug]/page.tsx` automatically becomes `/blog/:slug`.
+* **File-based routing.** `pages/blog/[slug]/page.tsx` automatically becomes `/blog/:slug`.
 * **Server-side rendering.** React renders to HTML on the server for every request.
 * **Per-page client bundles.** Each page gets its own JS bundle with just that page's code, not the whole app.
 * **Client-side hydration.** React takes over the server-rendered HTML in the browser.
 * **Client-side navigation.** Clicking a link fetches only the data (JSON) for the new page and swaps it in, no full page reload.
 * **Loading skeletons.** If you define a `loading.tsx` next to a page, it shows while the new page's data is being fetched during client-side navigation.
-* **Dev mode with auto-rebuild.** Changes to `app/` trigger a rebuild and browser reload automatically.
+* **Dev mode with auto-rebuild.** Changes to `pages/` trigger a rebuild and browser reload automatically.
 
 ### The two phases
 
 SmoothJS has two distinct phases:
 
 **Build phase** (`smooth build` or `smooth dev`):
-- Scans `app/` for `page.tsx` files
+- Scans `pages/` for `page.tsx` files
 - Generates client JavaScript bundles for each page
 - Compiles CSS via Tailwind
 - Writes a manifest file (`.smooth/manifest.json`)
@@ -244,33 +244,33 @@ Before we can talk about routing or rendering, we need a shared vocabulary. Ever
 
 ### `RouteEntry`
 
-The single most important type. One `RouteEntry` exists for every `page.tsx` found in `app/`. It carries everything the framework needs at build time and serve time.
+The single most important type. One `RouteEntry` exists for every `page.tsx` found in `pages/`. It carries everything the framework needs at build time and serve time.
 
 ```ts
 interface RouteEntry {
  pattern: string; // URL pattern, e.g. "/blog/:slug"
- pagePath: string; // relative path, e.g. "app/blog/[slug]/page.tsx"
- layouts: string[]; // outermost-first: ["app/layout.tsx", "app/blog/layout.tsx"]
+ pagePath: string; // relative path, e.g. "pages/blog/[slug]/page.tsx"
+ layouts: string[]; // outermost-first: ["pages/_app.tsx"]
  clientBundle: string; // ".smooth/client/blog/[slug].js"
  dynamic: boolean; // true if pattern contains :param segments
  params: string[]; // dynamic param names, e.g. ["slug"]
- loadingPath?: string; // "app/blog/[slug]/loading.tsx" if it exists
+ loadingPath?: string; // "pages/blog/[slug]/loading.tsx" if it exists
  loadingBundle?: string; // ".smooth/client/blog/[slug].loading.js"
 }
 ```
 
 `loadingPath` and `loadingBundle` are only set when a `loading.tsx` file exists alongside the route's `page.tsx`. The router detects them during `walkAppDir` and the build generates a separate client bundle for the skeleton UI.
 
-**Example** - for `app/blog/[slug]/page.tsx` with a `loading.tsx` alongside it:
+**Example** - for `pages/blog/[slug]/page.tsx` with a `loading.tsx` alongside it:
 ```json
 {
  "pattern": "/blog/:slug",
- "pagePath": "app/blog/[slug]/page.tsx",
- "layouts": ["app/layout.tsx"],
+ "pagePath": "pages/blog/[slug]/page.tsx",
+ "layouts": ["pages/_app.tsx"],
  "clientBundle": ".smooth/client/blog/[slug].js",
  "dynamic": true,
  "params": ["slug"],
- "loadingPath": "app/blog/[slug]/loading.tsx",
+ "loadingPath": "pages/blog/[slug]/loading.tsx",
  "loadingBundle": ".smooth/client/blog/[slug].loading.js"
 }
 ```
@@ -283,7 +283,7 @@ An array of `RouteEntry`. This is the **manifest** - the complete list of every 
 type Manifest = RouteEntry[];
 ```
 
-Think of the manifest as a compiled directory listing. Instead of the server scanning `app/` on every request (slow), the build phase does it once and saves the result as a JSON file.
+Think of the manifest as a compiled directory listing. Instead of the server scanning `pages/` on every request (slow), the build phase does it once and saves the result as a JSON file.
 
 ### `ClientManifestEntry`
 
@@ -344,7 +344,7 @@ interface PageModule {
 ### What the router does, simply
 
 The router has two jobs:
-1. **Discover** - scan the `app/` directory and find every `page.tsx`. Figure out what URL pattern each one matches, what layouts wrap it, whether it's a static route or a dynamic one (with `[param]` segments).
+1. **Discover** - scan the `pages/` directory and find every `page.tsx`. Figure out what URL pattern each one matches, what layouts wrap it, whether it's a static route or a dynamic one (with `[param]` segments).
 2. **Match** - when a request comes in (e.g. `/blog/hello-world`), find which route it matches and extract any dynamic params (e.g. `{ slug: "hello-world" }`).
 
 This is the same thing frameworks like Next.js and SvelteKit do: the filesystem *is* the route config.
@@ -358,12 +358,11 @@ This is the same thing frameworks like Next.js and SvelteKit do: the filesystem 
 A recursive directory walker. Reads a directory, recurses into subdirectories, and collects the absolute paths of every `page.tsx` it finds. `loading.tsx`, `layout.tsx`, and other files are ignored here.
 
 ```
-app/
+pages/
  page.tsx ← collected
  about/
  page.tsx ← collected
  blog/
- layout.tsx ← ignored
  [slug]/
  page.tsx ← collected
  loading.tsx ← ignored (detected separately via fileExists)
@@ -379,10 +378,10 @@ Takes an absolute path to a `page.tsx` and produces the URL pattern.
 
 | Input path | Output pattern |
 |---|---|
-| `app/page.tsx` | `/` |
-| `app/about/page.tsx` | `/about` |
-| `app/blog/[slug]/page.tsx` | `/blog/:slug` |
-| `app/users/[id]/posts/[postId]/page.tsx` | `/users/:id/posts/:postId` |
+| `pages/page.tsx` | `/` |
+| `pages/about/page.tsx` | `/about` |
+| `pages/blog/[slug]/page.tsx` | `/blog/:slug` |
+| `pages/users/[id]/posts/[postId]/page.tsx` | `/users/:id/posts/:postId` |
 
 `[slug]` in the filesystem becomes `:slug` in the URL pattern. This is the convention: square brackets on disk, colon-prefixed in URLs.
 
@@ -414,17 +413,13 @@ Returns the dynamic param names from a route's directory segments.
 ["users", "[id]", "posts", "[postId]"] → ["id", "postId"]
 ```
 
-#### `collectLayouts(pageAbsPath, appDir, projectRoot)`
+#### `collectLayouts(pageAbsPath, pagesDir)`
 
-For a given page, walks up the directory tree collecting `layout.tsx` files until it reaches `appDir`. Returns them outermost-first.
+For a given page, finds the root `_app.tsx` at `pagesDir`. Returns a single-element array with its path, or an empty array if no `_app.tsx` exists.
 
-Given `app/blog/[slug]/page.tsx`:
-1. Start at `app/blog/[slug]/` - no `layout.tsx`
-2. Walk up to `app/blog/` - found `app/blog/layout.tsx`
-3. Walk up to `app/` - found `app/layout.tsx`
-4. `app/` equals `appDir`, stop
-5. Collected innermost-first: `["app/blog/layout.tsx", "app/layout.tsx"]`
-6. Reversed to outermost-first: `["app/layout.tsx", "app/blog/layout.tsx"]`
+Given any page under `pages/`:
+- Checks `pages/_app.tsx`
+- Returns `["pages/_app.tsx"]` if it exists, otherwise `[]`
 
 #### `patternToRegExp(pattern)`
 
@@ -499,8 +494,8 @@ Creates the TypeScript source for a page's client bundle. This is the entire cli
 ```ts
 import React from "react";
 import { hydrateRoot } from "react-dom/client";
-import Page from "/abs/path/to/app/blog/[slug]/page.tsx";
-import Layout0 from "/abs/path/to/app/layout.tsx";
+import Page from "/abs/path/to/pages/blog/[slug]/page.tsx";
+import Layout0 from "/abs/path/to/pages/_app.tsx";
 
 const _w = window as any;
 const _bundleUrl = "/_smooth/blog/[slug].js";
@@ -609,8 +604,8 @@ Generates the client bundle for a `loading.tsx` skeleton component. Structurally
 
 ```ts
 import React from "react";
-import Loading from "/abs/path/to/app/blog/[slug]/loading.tsx";
-import Layout0 from "/abs/path/to/app/layout.tsx";
+import Loading from "/abs/path/to/pages/blog/[slug]/loading.tsx";
+import Layout0 from "/abs/path/to/pages/_app.tsx";
 
 const _w = window as any;
 const _bundleUrl = "/_smooth/blog/[slug].loading.js";
@@ -666,9 +661,9 @@ routes.flatMap((route) => {
 
 ### `buildCSS(appDir, outDir)` - **exported**
 
-Processes `app/globals.css` through the Tailwind v4 Bun plugin and outputs `.smooth/client/styles.css`.
+Processes `pages/globals.css` through the Tailwind v4 Bun plugin and outputs `.smooth/client/styles.css`.
 
-- Returns silently if `app/globals.css` doesn't exist
+- Returns silently if `pages/globals.css` doesn't exist
 - Tailwind v4 automatically scans JSX for class names - no config file needed
 - `naming: "styles.css"` overrides Bun's default filename
 
@@ -769,7 +764,7 @@ Wraps server-rendered HTML in a complete document.
 
 **XSS safety:** Both data blobs replace `</script>` with `<\/script>` to prevent injection via prop values.
 
-**`metadata` merging:** All layout modules and the page module are collected; the last `title` wins (page overrides layout), all `links` arrays are concatenated. This lets `app/layout.tsx` inject font preconnects globally while pages set their own titles.
+**`metadata` merging:** All layout modules and the page module are collected; the last `title` wins (page overrides layout), all `links` arrays are concatenated. This lets `pages/_app.tsx` inject font preconnects globally while pages set their own titles.
 
 **HMR script:** In dev mode, an inline `<script>` opens an SSE connection to `/_smooth/hmr`. When the dev server broadcasts a reload event after a rebuild, the browser calls `location.reload()`.
 
@@ -910,7 +905,7 @@ This exists to solve a fundamental Bun module cache problem: Bun caches dynamica
 
 ### What the watcher does, simply
 
-The watcher powers dev mode. It watches your `app/` directory for file changes. When you save a file, it:
+The watcher powers dev mode. It watches your `pages/` directory for file changes. When you save a file, it:
 1. Waits a moment (debounce, so it doesn't rebuild 3 times when your editor saves)
 2. Rebuilds all client bundles and the manifest
 3. Kills the old server process and starts a fresh one
@@ -926,7 +921,7 @@ Uses `fs.watch()` with `recursive: true`. On change:
 
 1. Debounce - wait 100ms for the editor to finish writing (editors often write in multiple steps: truncate, write, sync)
 2. Re-entrant guard - if a rebuild is already in progress, record the latest changed file and do one follow-up rebuild after the current one completes. This prevents overlapping builds if files change rapidly
-3. Log the changed file as a route pattern (e.g. `app/blog/[slug]/page.tsx` → `/blog/:slug`)
+3. Log the changed file as a route pattern (e.g. `pages/blog/[slug]/page.tsx` → `/blog/:slug`)
 4. Call `onChange()` which triggers a full `build()` cycle
 
 ```
@@ -948,12 +943,12 @@ save file
 
 ```
 bin/smooth.ts
- └── build("app", ".smooth")
- ├── walkAppDir("app")
+ └── build("pages", ".smooth")
+ ├── walkAppDir("pages")
  │ ├── collectPageFiles() ← finds all page.tsx
  │ ├── fileExists("loading.tsx") ← per page directory
- │ ├── derivePattern() ← "app/blog/[slug]/page.tsx" → "/blog/:slug"
- │ ├── collectLayouts() ← ["app/layout.tsx"]
+ │ ├── derivePattern() ← "pages/blog/[slug]/page.tsx" → "/blog/:slug"
+ │ ├── collectLayouts() ← ["pages/_app.tsx"]
  │ ├── deriveClientBundle() ← ".smooth/client/blog/[slug].js"
  │ └── deriveLoadingBundle() ← ".smooth/client/blog/[slug].loading.js"
  │
@@ -962,7 +957,7 @@ bin/smooth.ts
  │ ├── generateLoadingEntrypoint() ← skeleton bundle (if loading.tsx exists)
  │ └── Bun.build() × N ← all bundles in parallel
  │
- ├── buildCSS("app", ".smooth")
+ ├── buildCSS("pages", ".smooth")
  │ └── Bun.build() + tailwindPlugin → styles.css
  │
  └── writeManifest(routes) → .smooth/manifest.json
@@ -978,7 +973,7 @@ GET /blog/hello-world
  ├── matchRoute(manifest, "/blog/hello-world")
  │ → { route, params: { slug: "hello-world" } }
  │
- ├── import("app/blog/[slug]/page.tsx")
+ ├── import("pages/blog/[slug]/page.tsx")
  │ → { default: BlogPost, getServerSideProps, metadata }
  │
  ├── getServerSideProps({ params, query, req })
@@ -999,7 +994,7 @@ GET /blog/hello-world
 
 ```
 bin/smooth.ts
- ├── build("app", ".smooth") ← initial build
+ ├── build("pages", ".smooth") ← initial build
  │
  ├── spawn child: bun pkg/server/run.ts .smooth/manifest.json 3001 --dev
  │ └── createServer(manifest, { port: 3001, dev: true })
@@ -1008,7 +1003,7 @@ bin/smooth.ts
  │ ├── GET /_smooth/hmr → SSE stream (kept alive, subscribed by browser)
  │ └── all other requests → proxy to child on :3001
  │
- └── watch("app", async () => {
+ └── watch("pages", async () => {
  await build(...) ← rebuild
  child.kill()
  child = spawnChild() ← fresh process = fresh module cache

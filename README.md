@@ -36,17 +36,16 @@ Open `http://localhost:3000`.
 
 ## The sample app
 
-The `app/` directory contains a sample application built to test this framework. It includes pages (home, blog, about), dynamic routes (`blog/[slug]`), nested layouts, `getServerSideProps` data fetching, client-side state (a counter), loading skeletons, and Tailwind CSS. You can modify it like a normal pre-RSC Next.js app - add pages, change layouts, wire up a database, or replace it entirely.
+The `pages/` directory contains a sample application built to test this framework. It includes pages (home, blog, about), dynamic routes (`blog/[slug]`), nested layouts, `getServerSideProps` data fetching, client-side state (a counter), loading skeletons, and Tailwind CSS. You can modify it like a normal pre-RSC Next.js app - add pages, change layouts, wire up a database, or replace it entirely.
 
 ## File structure
 
 ```
-app/
-  layout.tsx          # Root layout (wraps every page)
+pages/
+  _app.tsx            # Root app wrapper (wraps every page)
   page.tsx            # Home page  (/)
   blog/
     page.tsx          # Blog index (/blog)
-    layout.tsx        # Blog layout (wraps only blog pages)
     [slug]/
       page.tsx        # Blog post  (/blog/:slug)
       loading.tsx     # Loading skeleton for client-side navigation
@@ -59,7 +58,7 @@ bin/smooth.ts         # CLI entry point
 
 ## Features
 
-- **File-based routing.** `app/blog/[slug]/page.tsx` becomes `/blog/:slug`. Static and dynamic routes with nested layouts.
+- **File-based routing.** `pages/blog/[slug]/page.tsx` becomes `/blog/:slug`. Static and dynamic routes with nested layouts.
 - **Server-side rendering.** React renders to HTML on the server. The browser gets a complete page with real content. No blank white screen.
 - **Per-page client bundles.** Each page gets its own JavaScript bundle containing only that page's components and layouts. No monolithic app.js.
 - **Client-side hydration.** React takes over the server-rendered HTML in the browser. The page is visible immediately and becomes interactive after hydration.

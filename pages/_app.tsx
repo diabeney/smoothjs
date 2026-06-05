@@ -12,7 +12,7 @@ export const metadata: HeadMeta = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function App({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-black text-white">
       <nav className="border-b border-white/10">

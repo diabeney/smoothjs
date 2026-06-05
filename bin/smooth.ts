@@ -5,7 +5,7 @@ import { watch } from "../pkg/watcher/index.js";
 import { resolve } from "path";
 
 const cmd = process.argv[2];
-const appDir = resolve("app");
+const appDir = resolve("pages");
 const outDir = resolve(".smooth");
 
 async function main() {
